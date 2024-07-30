@@ -17,6 +17,7 @@ class Click(models.Model):
 class ShortURL(models.Model):
     original_url = models.URLField()
     short_code = models.CharField(max_length=10, unique=True, blank=True)
+    thank_you_page = models.URLField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.short_code:
