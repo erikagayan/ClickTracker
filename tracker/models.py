@@ -1,3 +1,5 @@
+import string
+import random
 from django.db import models
 
 
@@ -10,3 +12,22 @@ class Click(models.Model):
 
     def __str__(self):
         return f"Click from {self.ip_address} at {self.timestamp}"
+
+
+class ShortURL(models.Model):
+    original_url = models.URLField()
+    short_code = models.CharField(max_length=10, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.short_code:
+            self.short_code = self.generate_short_code()
+        super(ShortURL, self).save(*args, **kwargs)
+
+    def generate_short_code(self):
+        length = 6
+        characters = string.ascii_letters + string.digits
+        while True:
+            short_code = ''.join(random.choice(characters) for _ in range(length))
+            if not ShortURL.objects.filter(short_code=short_code).exists():
+                break
+        return short_code
