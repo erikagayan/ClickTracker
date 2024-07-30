@@ -11,5 +11,5 @@ class ClickSerializer(serializers.ModelSerializer):
 class ShortURLSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShortURL
-        fields = ['original_url', 'short_code']
+        fields = ['original_url', 'short_code', 'thank_you_page']
         read_only_fields = ['short_code']

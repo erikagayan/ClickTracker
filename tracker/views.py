@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from tracker.models import Click, ShortURL
 from rest_framework import viewsets, mixins
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from tracker.serializers import ClickSerializer, ShortURLSerializer
 from django.shortcuts import get_object_or_404, redirect
 
@@ -43,14 +44,23 @@ class ClickViewSet(mixins.ListModelMixin,
 
 
 def redirect_to_original(request, short_code):
-    try:
-        short_url = ShortURL.objects.get(short_code=short_code)
-        print(f"Redirecting to {short_url.original_url}")
-        return redirect(short_url.original_url)
-    except ShortURL.DoesNotExist:
-        return HttpResponse('Short URL not found', status=404)
+    short_url = get_object_or_404(ShortURL, short_code=short_code)
+    if short_url.thank_you_page:
+        return redirect(short_url.thank_you_page)
+    return redirect(short_url.original_url)
 
 
 class ShortURLViewSet(viewsets.ModelViewSet):
     queryset = ShortURL.objects.all()
     serializer_class = ShortURLSerializer
+
+    @action(detail=True, methods=['patch'])
+    def update_thank_you_page(self, request, pk=None):
+        short_url = self.get_object()
+        thank_you_page = request.data.get('thank_you_page')
+        if thank_you_page:
+            short_url.thank_you_page = thank_you_page
+            short_url.save()
+            return Response({'status': 'thank you page updated'})
+        else:
+            return Response({'error': 'thank you page not provided'}, status=status.HTTP_400_BAD_REQUEST)
